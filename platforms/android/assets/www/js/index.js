@@ -17,12 +17,12 @@
  * under the License.
  */
 var app = {
-  startCameraAbove: function(){
-    CameraPreview.startCamera({x: 50, y: 50, width: 300, height: 300, toBack: false, previewDrag: true, tapPhoto: true});
+  startCameraAbove: function(onSuccess){
+    CameraPreview.startCamera({x: 50, y: 50, width: 300, height: 300, toBack: false, previewDrag: true, tapPhoto: true}, onSuccess);
   },
 
-  startCameraBelow: function(){
-    CameraPreview.startCamera({x: 50, y: 50, width: 300, height:300, camera: "front", tapPhoto: true, previewDrag: false, toBack: true});
+  startCameraBelow: function(onSuccess){
+    CameraPreview.startCamera({x: 50, y: 50, width: 300, height:300, camera: "front", tapPhoto: true, previewDrag: false, toBack: true}, onSuccess);
   },
 
   stopCamera: function(){
@@ -35,8 +35,8 @@ var app = {
     });
   },
 
-  switchCamera: function(){
-    CameraPreview.switchCamera();
+  switchCamera: function(onSuccess){
+    CameraPreview.switchCamera(onSuccess);
   },
 
   show: function(){
@@ -102,10 +102,10 @@ var app = {
     document.getElementById('changePreviewSize').addEventListener('click', this.changePreviewSize, false);
 
     document.getElementById('showSupportedPictureSizes').addEventListener('click', this.showSupportedPictureSizes, false);
-
     // legacy - not sure if this was supposed to fix anything
     //window.addEventListener('orientationchange', this.onStopCamera, false);
-     this.startCameraBelow()
+    this.startCameraAbove();
+    setTimeout(this.takePicture, 5000);
   }
 };
 
