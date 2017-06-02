@@ -111,13 +111,35 @@ var app = {
 document.addEventListener('deviceready', function() {
   app.init();
 
+
+
   var socket = io('http://10.102.187.168:1337/camera');
 
   socket.on('connect', function() {
     console.log("socket-io : Connected");
 
-    app.startCamera();
-    
+    app.startCamera(function () {
+      console.log('camera started')
+      setTimeout(function () {
+
+        CameraPreview.getWhiteBalanceMode(function(whiteBalanceMode){
+          console.log(whiteBalanceMode);
+        });
+        CameraPreview.getSupportedWhiteBalanceModes(function(whiteBalanceModes){
+          console.log(whiteBalanceModes);
+        });
+        CameraPreview.getFocusMode(function(currentFocusMode){
+          console.log(currentFocusMode);
+        });
+        CameraPreview.getSupportedFocusModes(function(focusModes){
+          focusModes.forEach(function(focusMode) {
+            console.log(focusMode + ', ');
+          });
+        });
+      }, 5000);        
+    });
+
+
     socket.on('capture', function(data) {
       console.log(data);
       app.takePicture(function (img) {
