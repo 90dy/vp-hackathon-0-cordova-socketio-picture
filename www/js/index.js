@@ -16,22 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 var app = {
-  startCameraAbove: function(onSuccess){
-    CameraPreview.startCamera({x: 50, y: 50, width: 300, height: 300, toBack: false, previewDrag: true, tapPhoto: true}, onSuccess);
+  startCamera: function(onSuccess){
+    CameraPreview.startCamera({camera: "back", tapPhoto: true, previewDrag: false, toBack: true}, onSuccess);
   },
 
-  startCameraBelow: function(onSuccess){
-    CameraPreview.startCamera({x: 50, y: 50, width: 300, height:300, camera: "front", tapPhoto: true, previewDrag: false, toBack: true}, onSuccess);
+  stopCamera: function(onSuccess){
+    CameraPreview.stopCamera(onSuccess);
   },
 
-  stopCamera: function(){
-    CameraPreview.stopCamera();
-  },
-
-  takePicture: function(){
+  takePicture: function(onSuccess){
     CameraPreview.takePicture(function(imgData){
-      document.getElementById('originalPicture').src = 'data:image/jpeg;base64,' + imgData;
+      onSuccess('data:image/jpeg;base64,' + imgData);
     });
   },
 
@@ -65,9 +62,9 @@ var app = {
 
   changePreviewSize: function(){
     window.smallPreview = !window.smallPreview;
-    if(window.smallPreview){
+    if (window.smallPreview) {
       CameraPreview.setPreviewSize({width: 100, height: 100});
-    }else{
+    } else {
       CameraPreview.setPreviewSize({width: window.screen.width, height: window.screen.height});
     }
   },
@@ -81,7 +78,7 @@ var app = {
   },
 
   init: function(){
-    document.getElementById('startCameraAboveButton').addEventListener('click', this.startCameraAbove, false);
+    /*document.getElementById('startCameraAboveButton').addEventListener('click', this.startCameraAbove, false);
     document.getElementById('startCameraBelowButton').addEventListener('click', this.startCameraBelow, false);
 
     document.getElementById('stopCameraButton').addEventListener('click', this.stopCamera, false);
@@ -102,17 +99,48 @@ var app = {
     document.getElementById('changePreviewSize').addEventListener('click', this.changePreviewSize, false);
 
     document.getElementById('showSupportedPictureSizes').addEventListener('click', this.showSupportedPictureSizes, false);
+    */
 
-    setTimeout(function(){
-
-
-      this.takePicture()
-    }, 3000);
     // legacy - not sure if this was supposed to fix anything
-    //window.addEventListener('orientationchange', this.onStopCamera, false);
+    window.addEventListener('orientationchange', function() {
+      this.stopCamera(this.startCamera);
+    }, false);
   }
 };
 
-document.addEventListener('deviceready', function(){	
+document.addEventListener('deviceready', function() {
   app.init();
+
+  var socket = io('http://10.102.187.168:1337/camera');
+
+  socket.on('connect', function() {
+    console.log("socket-io : Connected");
+
+    app.startCamera();
+    
+    socket.on('capture', function(data) {
+      console.log(data);
+      app.takePicture(function (img) {
+        console.log(img);
+        cordovaHTTP.post(
+          'http://10.102.187.168:80/v1/samples/' + data.ref + '/image',
+          { image: img },
+          {},
+          function(response) {
+            console.log(response);
+          },
+          function(response) {
+            console.error(response);
+          }
+        )
+      })
+    });
+
+    socket.on('message', function() {
+      console.log("socket-io : Message");
+    })
+  })
+
+
+
 }, false);
